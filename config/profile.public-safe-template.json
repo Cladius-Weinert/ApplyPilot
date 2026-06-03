@@ -1,0 +1,57 @@
+{
+  "name": "CLADIUS WEINERT",
+  "email": "USE_PRIVATE_EMAIL_LOCALLY_ONLY",
+  "phone": "USE_PRIVATE_PHONE_LOCALLY_ONLY",
+  "location": "Denpasar, Bali, Indonesia",
+  "work_preferences": {
+    "remote": true,
+    "job_types": ["freelance", "contract", "part-time", "remote"],
+    "target_roles": [
+      "AI Data Annotator",
+      "Indonesian AI Trainer",
+      "Bilingual Indonesian English Evaluator",
+      "LLM Response Evaluator",
+      "Transcription QA Specialist",
+      "Remote Content Evaluator",
+      "Balinese Linguist",
+      "Malay Indonesian Language Evaluator"
+    ],
+    "avoid_roles": [
+      "onsite only",
+      "commission only",
+      "unpaid internship",
+      "senior engineering roles requiring deep production experience"
+    ]
+  },
+  "languages": [
+    {"language": "Indonesian", "level": "Native / Fluent"},
+    {"language": "English", "level": "Professional / Advanced"},
+    {"language": "Malay", "level": "Professional / Advanced"},
+    {"language": "Balinese", "level": "Working / Regional language knowledge"}
+  ],
+  "skills": [
+    "AI data annotation",
+    "LLM response evaluation",
+    "instruction-following evaluation",
+    "Indonesian-English bilingual review",
+    "Malay-Indonesian language review",
+    "transcription QA",
+    "timestamping",
+    "content evaluation",
+    "search relevance evaluation",
+    "rubric-based quality review",
+    "remote freelance communication"
+  ],
+  "resume_facts": [
+    "Experienced in freelance remote AI data annotation and language evaluation tasks.",
+    "Able to evaluate Indonesian and English AI responses for accuracy, helpfulness, safety, and instruction following.",
+    "Experienced with transcription QA, timestamp checks, content review, and guideline-based evaluation.",
+    "Located in Denpasar, Bali, Indonesia and available for remote freelance work."
+  ],
+  "application_rules": {
+    "do_not_fabricate": true,
+    "require_manual_review_before_submit": true,
+    "minimum_job_score": 8,
+    "submit_only_relevant_roles": true
+  }
+}
