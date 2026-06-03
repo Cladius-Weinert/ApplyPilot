@@ -1,0 +1,94 @@
+name: ApplyPilot Safe Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Choose what to run"
+        required: true
+        default: "doctor"
+        type: choice
+        options:
+          - doctor
+          - discover
+          - dry-run
+
+permissions:
+  contents: read
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  applypilot-safe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb chromium-browser || true
+
+      - name: Install ApplyPilot dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install applypilot
+          pip install --no-deps python-jobspy
+          pip install pydantic tls-client requests markdownify regex
+
+      - name: Prepare public-safe config files
+        run: |
+          mkdir -p .applypilot-ci
+          cp config/searches.relevant-ai-language.yaml .applypilot-ci/searches.yaml || true
+          cp config/profile.public-safe-template.json .applypilot-ci/profile.public-safe-template.json || true
+          echo "Prepared public-safe config templates. Private profile, resume, and API keys must be added as GitHub Secrets or run locally."
+
+      - name: Doctor check
+        if: ${{ github.event.inputs.mode == 'doctor' }}
+        run: |
+          applypilot doctor || true
+
+      - name: Discover and generate only
+        if: ${{ github.event.inputs.mode == 'discover' }}
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "GEMINI_API_KEY secret is missing. Add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "Running discovery/generation only. No application submission."
+          applypilot run --min-score 8 --validation lenient || true
+
+      - name: Dry-run apply only
+        if: ${{ github.event.inputs.mode == 'dry-run' }}
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "GEMINI_API_KEY secret is missing. Add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "Running dry-run only. This must not submit applications."
+          applypilot apply --dry-run --workers 1 || true
+
+      - name: Upload ApplyPilot outputs if present
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: applypilot-safe-output
+          path: |
+            outputs/**
+            results/**
+            .applypilot/**
+            .applypilot-ci/**
+          if-no-files-found: ignore
