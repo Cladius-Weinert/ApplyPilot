@@ -189,6 +189,23 @@ def load_base_urls() -> dict[str, str | None]:
 # Default values — referenced across modules instead of magic numbers
 # ---------------------------------------------------------------------------
 
+
+LLM_ENV_KEYS = (
+    "GEMINI_API_KEY",
+    "OPENAI_API_KEY",
+    "OPENROUTER_API_KEY",
+    "DEEPSEEK_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "CLAUDE_API_KEY",
+    "LLM_URL",
+)
+
+
+def has_llm_config() -> bool:
+    """Return True when any supported LLM provider is configured."""
+    return any(os.environ.get(k) for k in LLM_ENV_KEYS)
+
+
 DEFAULTS = {
     "min_score": 7,
     "max_apply_attempts": 3,
@@ -234,8 +251,7 @@ def get_tier() -> int:
     """
     load_env()
 
-    has_llm = any(os.environ.get(k) for k in ("GEMINI_API_KEY", "OPENAI_API_KEY", "LLM_URL"))
-    if not has_llm:
+    if not has_llm_config():
         return 1
 
     has_claude = shutil.which("claude") is not None
@@ -266,8 +282,8 @@ def check_tier(required: int, feature: str) -> None:
     _console = Console(stderr=True)
 
     missing: list[str] = []
-    if required >= 2 and not any(os.environ.get(k) for k in ("GEMINI_API_KEY", "OPENAI_API_KEY", "LLM_URL")):
-        missing.append("LLM API key — run [bold]applypilot init[/bold] or set GEMINI_API_KEY")
+    if required >= 2 and not has_llm_config():
+        missing.append("LLM provider — run [bold]applypilot init[/bold] or set a supported LLM API key")
     if required >= 3:
         if not shutil.which("claude"):
             missing.append("Claude Code CLI — install from [bold]https://claude.ai/code[/bold]")

@@ -13,7 +13,6 @@ import json
 import shutil
 from pathlib import Path
 
-import typer
 from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
@@ -245,10 +244,13 @@ def _setup_ai_features() -> None:
         console.print("[dim]Discovery-only mode. You can configure AI later with [bold]applypilot init[/bold].[/dim]")
         return
 
-    console.print("Supported providers: [bold]Gemini[/bold] (recommended, free tier), OpenAI, local (Ollama/llama.cpp)")
+    console.print(
+        "Supported providers: [bold]Gemini[/bold] (recommended), OpenAI, OpenRouter, "
+        "DeepSeek, Claude, local (Ollama/llama.cpp)"
+    )
     provider = Prompt.ask(
         "Provider",
-        choices=["gemini", "openai", "local"],
+        choices=["gemini", "openai", "openrouter", "deepseek", "claude", "local"],
         default="gemini",
     )
 
@@ -264,12 +266,28 @@ def _setup_ai_features() -> None:
         model = Prompt.ask("Model", default="gpt-4o-mini")
         env_lines.append(f"OPENAI_API_KEY={api_key}")
         env_lines.append(f"LLM_MODEL={model}")
+    elif provider == "openrouter":
+        api_key = Prompt.ask("OpenRouter API key")
+        model = Prompt.ask("Model", default="google/gemini-2.0-flash-001")
+        env_lines.append(f"OPENROUTER_API_KEY={api_key}")
+        env_lines.append(f"LLM_MODEL={model}")
+    elif provider == "deepseek":
+        api_key = Prompt.ask("DeepSeek API key")
+        model = Prompt.ask("Model", default="deepseek-chat")
+        env_lines.append(f"DEEPSEEK_API_KEY={api_key}")
+        env_lines.append(f"LLM_MODEL={model}")
+    elif provider == "claude":
+        api_key = Prompt.ask("Anthropic API key")
+        model = Prompt.ask("Model", default="claude-3-5-haiku-latest")
+        env_lines.append(f"ANTHROPIC_API_KEY={api_key}")
+        env_lines.append(f"LLM_MODEL={model}")
     elif provider == "local":
         url = Prompt.ask("Local LLM endpoint URL", default="http://localhost:8080/v1")
         model = Prompt.ask("Model name", default="local-model")
         env_lines.append(f"LLM_URL={url}")
         env_lines.append(f"LLM_MODEL={model}")
 
+    env_lines.append(f"LLM_PROVIDER={provider}")
     env_lines.append("")
     ENV_PATH.write_text("\n".join(env_lines), encoding="utf-8")
     console.print(f"[green]AI configuration saved to {ENV_PATH}[/green]")

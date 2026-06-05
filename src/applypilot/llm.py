@@ -2,13 +2,21 @@
 Unified LLM client for ApplyPilot.
 
 Auto-detects provider from environment:
-  GEMINI_API_KEY  -> Google Gemini (default: gemini-2.0-flash)
-  OPENAI_API_KEY  -> OpenAI (default: gpt-4o-mini)
-  LLM_URL         -> Local llama.cpp / Ollama compatible endpoint
+  GEMINI_API_KEY      -> Google Gemini (default: gemini-2.0-flash)
+  OPENAI_API_KEY      -> OpenAI (default: gpt-4o-mini)
+  OPENROUTER_API_KEY  -> OpenRouter (default: google/gemini-2.0-flash-001)
+  DEEPSEEK_API_KEY    -> DeepSeek (default: deepseek-chat)
+  ANTHROPIC_API_KEY   -> Claude via Anthropic Messages API (default: claude-3-5-haiku-latest)
+  CLAUDE_API_KEY      -> Alias for ANTHROPIC_API_KEY
+  LLM_URL             -> Local llama.cpp / Ollama compatible endpoint
 
 LLM_MODEL env var overrides the model name for any provider.
+LLM_PROVIDER can be set to force a provider when multiple keys are present.
 """
 
+from __future__ import annotations
+
+from dataclasses import dataclass
 import logging
 import os
 import time
@@ -21,42 +29,124 @@ log = logging.getLogger(__name__)
 # Provider detection
 # ---------------------------------------------------------------------------
 
-def _detect_provider() -> tuple[str, str, str]:
-    """Return (base_url, model, api_key) based on environment variables.
+_GEMINI_COMPAT_BASE = "https://generativelanguage.googleapis.com/v1beta/openai"
+_GEMINI_NATIVE_BASE = "https://generativelanguage.googleapis.com/v1beta"
+_ANTHROPIC_BASE = "https://api.anthropic.com/v1"
+
+
+@dataclass(frozen=True)
+class ProviderConfig:
+    """Resolved LLM provider settings."""
+
+    name: str
+    base_url: str
+    model: str
+    api_key: str
+    api_style: str = "openai-compatible"
+
+
+_PROVIDER_ALIASES = {
+    "anthropic": "claude",
+    "claude": "claude",
+    "deepseek": "deepseek",
+    "gemini": "gemini",
+    "google": "gemini",
+    "local": "local",
+    "ollama": "local",
+    "openai": "openai",
+    "openrouter": "openrouter",
+}
+
+
+def _preferred_provider() -> str:
+    requested = os.environ.get("LLM_PROVIDER", "").strip().lower()
+    return _PROVIDER_ALIASES.get(requested, requested)
+
+
+def _detect_provider_config() -> ProviderConfig:
+    """Return resolved provider settings based on environment variables.
 
     Reads env at call time (not module import time) so that load_env() called
     in _bootstrap() is always visible here.
     """
-    gemini_key = os.environ.get("GEMINI_API_KEY", "")
-    openai_key = os.environ.get("OPENAI_API_KEY", "")
-    local_url = os.environ.get("LLM_URL", "")
+    requested = _preferred_provider()
     model_override = os.environ.get("LLM_MODEL", "")
 
-    if gemini_key and not local_url:
-        return (
-            "https://generativelanguage.googleapis.com/v1beta/openai",
-            model_override or "gemini-2.0-flash",
-            gemini_key,
+    providers: dict[str, ProviderConfig] = {}
+
+    if gemini_key := os.environ.get("GEMINI_API_KEY", ""):
+        providers["gemini"] = ProviderConfig(
+            name="gemini",
+            base_url=_GEMINI_COMPAT_BASE,
+            model=model_override or "gemini-2.0-flash",
+            api_key=gemini_key,
         )
 
-    if openai_key and not local_url:
-        return (
-            "https://api.openai.com/v1",
-            model_override or "gpt-4o-mini",
-            openai_key,
+    if openai_key := os.environ.get("OPENAI_API_KEY", ""):
+        providers["openai"] = ProviderConfig(
+            name="openai",
+            base_url="https://api.openai.com/v1",
+            model=model_override or "gpt-4o-mini",
+            api_key=openai_key,
         )
 
-    if local_url:
-        return (
-            local_url.rstrip("/"),
-            model_override or "local-model",
-            os.environ.get("LLM_API_KEY", ""),
+    if openrouter_key := os.environ.get("OPENROUTER_API_KEY", ""):
+        providers["openrouter"] = ProviderConfig(
+            name="openrouter",
+            base_url="https://openrouter.ai/api/v1",
+            model=model_override or "google/gemini-2.0-flash-001",
+            api_key=openrouter_key,
         )
+
+    if deepseek_key := os.environ.get("DEEPSEEK_API_KEY", ""):
+        providers["deepseek"] = ProviderConfig(
+            name="deepseek",
+            base_url="https://api.deepseek.com/v1",
+            model=model_override or "deepseek-chat",
+            api_key=deepseek_key,
+        )
+
+    claude_key = os.environ.get("ANTHROPIC_API_KEY", "") or os.environ.get("CLAUDE_API_KEY", "")
+    if claude_key:
+        providers["claude"] = ProviderConfig(
+            name="claude",
+            base_url=_ANTHROPIC_BASE,
+            model=model_override or "claude-3-5-haiku-latest",
+            api_key=claude_key,
+            api_style="anthropic-messages",
+        )
+
+    if local_url := os.environ.get("LLM_URL", ""):
+        providers["local"] = ProviderConfig(
+            name="local",
+            base_url=local_url.rstrip("/"),
+            model=model_override or "local-model",
+            api_key=os.environ.get("LLM_API_KEY", ""),
+        )
+
+    if requested:
+        if requested in providers:
+            return providers[requested]
+        raise RuntimeError(
+            f"LLM_PROVIDER={requested!r} was requested, but its required environment variables are missing. "
+            "Set the matching API key or choose another provider."
+        )
+
+    # Preserve the old priority: local overrides remote, then Gemini, OpenAI.
+    for name in ("local", "gemini", "openai", "openrouter", "deepseek", "claude"):
+        if name in providers:
+            return providers[name]
 
     raise RuntimeError(
-        "No LLM provider configured. "
-        "Set GEMINI_API_KEY, OPENAI_API_KEY, or LLM_URL in your environment."
+        "No LLM provider configured. Set one of GEMINI_API_KEY, OPENAI_API_KEY, "
+        "OPENROUTER_API_KEY, DEEPSEEK_API_KEY, ANTHROPIC_API_KEY/CLAUDE_API_KEY, or LLM_URL."
     )
+
+
+def _detect_provider() -> tuple[str, str, str]:
+    """Backward-compatible provider tuple used by older tests/integrations."""
+    config = _detect_provider_config()
+    return config.base_url, config.model, config.api_key
 
 
 # ---------------------------------------------------------------------------
@@ -71,12 +161,8 @@ _TIMEOUT = 120  # seconds
 _RATE_LIMIT_BASE_WAIT = 10
 
 
-_GEMINI_COMPAT_BASE = "https://generativelanguage.googleapis.com/v1beta/openai"
-_GEMINI_NATIVE_BASE = "https://generativelanguage.googleapis.com/v1beta"
-
-
 class LLMClient:
-    """Thin LLM client supporting OpenAI-compatible and native Gemini endpoints.
+    """Thin LLM client supporting OpenAI-compatible, Anthropic, and native Gemini APIs.
 
     For Gemini keys, starts on the OpenAI-compat layer. On a 403 (which
     happens with preview/experimental models not exposed via compat), it
@@ -84,14 +170,20 @@ class LLMClient:
     for the lifetime of the process.
     """
 
-    def __init__(self, base_url: str, model: str, api_key: str) -> None:
+    def __init__(self, base_url: str, model: str, api_key: str, provider: str = "custom") -> None:
         self.base_url = base_url
         self.model = model
         self.api_key = api_key
+        self.provider = provider
         self._client = httpx.Client(timeout=_TIMEOUT)
         # True once we've confirmed the native Gemini API works for this model
         self._use_native_gemini: bool = False
         self._is_gemini: bool = base_url.startswith(_GEMINI_COMPAT_BASE)
+        self._is_anthropic: bool = base_url.startswith(_ANTHROPIC_BASE) or provider == "claude"
+
+    @classmethod
+    def from_config(cls, config: ProviderConfig) -> "LLMClient":
+        return cls(config.base_url, config.model, config.api_key, provider=config.name)
 
     # -- Native Gemini API --------------------------------------------------
 
@@ -144,6 +236,48 @@ class LLMClient:
         data = resp.json()
         return data["candidates"][0]["content"]["parts"][0]["text"]
 
+    # -- Anthropic Messages API -------------------------------------------
+
+    def _chat_anthropic(
+        self,
+        messages: list[dict],
+        temperature: float,
+        max_tokens: int,
+    ) -> str:
+        """Call Anthropic's Messages API using OpenAI-style input messages."""
+        system_messages: list[str] = []
+        anthropic_messages: list[dict] = []
+
+        for msg in messages:
+            role = msg.get("role")
+            content = msg.get("content", "")
+            if role == "system":
+                system_messages.append(content)
+            elif role in {"user", "assistant"}:
+                anthropic_messages.append({"role": role, "content": content})
+
+        payload: dict = {
+            "model": self.model,
+            "messages": anthropic_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        if system_messages:
+            payload["system"] = "\n\n".join(system_messages)
+
+        resp = self._client.post(
+            f"{self.base_url}/messages",
+            json=payload,
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key": self.api_key,
+                "anthropic-version": "2023-06-01",
+            },
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return "".join(part.get("text", "") for part in data.get("content", []) if part.get("type") == "text")
+
     # -- OpenAI-compat API --------------------------------------------------
 
     def _chat_compat(
@@ -156,6 +290,9 @@ class LLMClient:
         headers: dict[str, str] = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
+        if self.provider == "openrouter":
+            headers["HTTP-Referer"] = "https://github.com/Pickle-Pixel/ApplyPilot"
+            headers["X-Title"] = "ApplyPilot"
 
         payload = {
             "model": self.model,
@@ -201,13 +338,16 @@ class LLMClient:
 
         for attempt in range(_MAX_RETRIES):
             try:
+                if self._is_anthropic:
+                    return self._chat_anthropic(messages, temperature, max_tokens)
+
                 # Route to native Gemini if we've already confirmed it's needed
                 if self._use_native_gemini:
                     return self._chat_native_gemini(messages, temperature, max_tokens)
 
                 return self._chat_compat(messages, temperature, max_tokens)
 
-            except _GeminiCompatForbidden as exc:
+            except _GeminiCompatForbidden:
                 # Model not available on OpenAI-compat layer — switch to native.
                 log.warning(
                     "Gemini compat endpoint returned 403 for model '%s'. "
@@ -275,23 +415,27 @@ class LLMClient:
 
 class _GeminiCompatForbidden(Exception):
     """Sentinel: Gemini OpenAI-compat returned 403. Switch to native API."""
+
     def __init__(self, response: httpx.Response) -> None:
         self.response = response
         super().__init__(f"Gemini compat 403: {response.text[:200]}")
 
 
-# ---------------------------------------------------------------------------
-# Singleton
-# ---------------------------------------------------------------------------
-
-_instance: LLMClient | None = None
+# Singleton client
+_client: LLMClient | None = None
 
 
 def get_client() -> LLMClient:
-    """Return (or create) the module-level LLMClient singleton."""
-    global _instance
-    if _instance is None:
-        base_url, model, api_key = _detect_provider()
-        log.info("LLM provider: %s  model: %s", base_url, model)
-        _instance = LLMClient(base_url, model, api_key)
-    return _instance
+    """Return a process-wide LLM client."""
+    global _client
+    if _client is None:
+        _client = LLMClient.from_config(_detect_provider_config())
+    return _client
+
+
+def reset_client() -> None:
+    """Close and clear the singleton LLM client; useful for tests and provider changes."""
+    global _client
+    if _client is not None:
+        _client.close()
+        _client = None
