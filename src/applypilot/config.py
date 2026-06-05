@@ -1,9 +1,12 @@
 """ApplyPilot configuration: paths, platform detection, user data."""
 
+import json
 import os
 import platform
 import shutil
 from pathlib import Path
+
+import yaml
 
 # User data directory — all user-specific files live here
 APP_DIR = Path(os.environ.get("APPLYPILOT_DIR", Path.home() / ".applypilot"))
@@ -30,6 +33,13 @@ PACKAGE_DIR = Path(__file__).parent
 CONFIG_DIR = PACKAGE_DIR / "config"
 
 
+def is_termux() -> bool:
+    """Return True when running inside a Termux-style Android environment."""
+    prefix = os.environ.get("PREFIX", "")
+    termux_version = os.environ.get("TERMUX_VERSION", "")
+    return "com.termux" in prefix or bool(termux_version)
+
+
 def get_chrome_path() -> str:
     """Auto-detect Chrome/Chromium executable path, cross-platform.
 
@@ -52,9 +62,9 @@ def get_chrome_path() -> str:
             Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
             Path("/Applications/Chromium.app/Contents/MacOS/Chromium"),
         ]
-    else:  # Linux
+    else:  # Linux, including Termux/proot environments
         candidates = []
-        for name in ("google-chrome", "google-chrome-stable", "chromium-browser", "chromium"):
+        for name in ("google-chrome", "google-chrome-stable", "chromium-browser", "chromium", "termux-open"):
             found = shutil.which(name)
             if found:
                 candidates.append(Path(found))
@@ -69,9 +79,14 @@ def get_chrome_path() -> str:
         if found:
             return found
 
-    raise FileNotFoundError(
-        "Chrome/Chromium not found. Install Chrome or set CHROME_PATH environment variable."
-    )
+    hint = "Install Chrome/Chromium or set CHROME_PATH environment variable."
+    if is_termux():
+        hint = (
+            "Auto-apply browser automation is limited on Android/Termux. "
+            "Use discovery/tailoring on-device, or set CHROME_PATH to a Chromium binary "
+            "inside a proot Linux environment for browser automation."
+        )
+    raise FileNotFoundError(f"Chrome/Chromium not found. {hint}")
 
 
 def get_chrome_user_data() -> Path:
@@ -82,6 +97,8 @@ def get_chrome_user_data() -> Path:
     elif system == "Darwin":
         return Path.home() / "Library" / "Application Support" / "Google" / "Chrome"
     else:
+        if is_termux():
+            return APP_DIR / "chrome-user-data"
         return Path.home() / ".config" / "google-chrome"
 
 
@@ -93,33 +110,44 @@ def ensure_dirs():
 
 def load_profile() -> dict:
     """Load user profile from ~/.applypilot/profile.json."""
-    import json
     if not PROFILE_PATH.exists():
         raise FileNotFoundError(
             f"Profile not found at {PROFILE_PATH}. Run `applypilot init` first."
         )
-    return json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    try:
+        return json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"Invalid JSON in {PROFILE_PATH}: line {exc.lineno}, column {exc.colno}. "
+            "Fix the file or re-run `applypilot init`."
+        ) from exc
+
+
+def load_yaml_file(path: Path, default: dict | None = None) -> dict:
+    """Load a YAML file with a clearer error for user-editable config files."""
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8")) or (default or {})
+    except yaml.YAMLError as exc:
+        raise ValueError(f"Invalid YAML in {path}: {exc}") from exc
 
 
 def load_search_config() -> dict:
     """Load search configuration from ~/.applypilot/searches.yaml."""
-    import yaml
     if not SEARCH_CONFIG_PATH.exists():
         # Fall back to package-shipped example
         example = CONFIG_DIR / "searches.example.yaml"
         if example.exists():
-            return yaml.safe_load(example.read_text(encoding="utf-8"))
+            return load_yaml_file(example)
         return {}
-    return yaml.safe_load(SEARCH_CONFIG_PATH.read_text(encoding="utf-8"))
+    return load_yaml_file(SEARCH_CONFIG_PATH)
 
 
 def load_sites_config() -> dict:
     """Load sites.yaml configuration (sites list, manual_ats, blocked, etc.)."""
-    import yaml
     path = CONFIG_DIR / "sites.yaml"
     if not path.exists():
         return {}
-    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return load_yaml_file(path)
 
 
 def is_manual_ats(url: str | None) -> bool:
