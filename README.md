@@ -20,6 +20,11 @@ https://github.com/user-attachments/assets/7ee3417f-43d4-4245-9952-35df1e77f2df
 
 ---
 
+## 📱 Mobile Setup
+See [docs/TERMUX_SETUP.md](docs/TERMUX_SETUP.md) for Android/Termux installation instructions.
+
+---
+
 ## What It Does
 
 ApplyPilot is a 6-stage autonomous job application pipeline. It discovers jobs across 5+ boards, scores them against your resume with AI, tailors your resume per job, writes cover letters, and **submits applications for you**. It navigates forms, uploads documents, answers screening questions, all hands-free.
