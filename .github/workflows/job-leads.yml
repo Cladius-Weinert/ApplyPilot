@@ -1,0 +1,64 @@
+name: Safe Job Leads
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Default: every 24 hours at 03:00 UTC.
+    # To run every 6 hours instead, use: '0 */6 * * *'
+    - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+
+env:
+  BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+  BING_SEARCH_API_KEY: ${{ secrets.BING_SEARCH_API_KEY }}
+  SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+  TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+
+jobs:
+  collect-job-leads:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install ApplyPilot
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Run safe collectors only
+        run: |
+          mkdir -p outputs/public
+          applypilot job-leads collect --config config/job_lead_sources.yaml
+          applypilot job-leads score --input outputs/public/job_leads_raw.json
+          applypilot job-leads export --format csv,md
+          applypilot job-leads links --config config/job_lead_queries.yaml
+
+      - name: Verify public-safe output set
+        run: |
+          test -f outputs/public/job_leads.csv
+          test -f outputs/public/job_leads.md
+          test -f outputs/public/manual_search_links.md
+          test -f outputs/public/job_lead_summary.md
+          if find outputs/public \( -iname '.env' -o -iname '*resume*' -o -iname '*cv*' -o -iname '*profile*' -o -iname '*cookie*' -o -iname '*session*' -o -iname '*password*' \) | grep -q .; then
+            echo 'Private-looking file found in outputs/public'
+            exit 1
+          fi
+
+      - name: Upload public-safe job lead outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-job-leads
+          path: |
+            outputs/public/job_leads.csv
+            outputs/public/job_leads.md
+            outputs/public/manual_search_links.md
+            outputs/public/job_lead_summary.md
+          if-no-files-found: error

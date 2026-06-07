@@ -1,0 +1,56 @@
+# Safe public job lead sources only.
+# Do not add LinkedIn, Indeed, Glassdoor, or login-heavy job boards here.
+sources:
+  - name: Anthropic Greenhouse
+    type: public_ats_api
+    enabled: true
+    board_token: anthropic
+    limit: 20
+    tags: [llm evaluation, ai data, remote]
+
+  - name: Scale AI Greenhouse
+    type: public_ats_api
+    enabled: true
+    board_token: scaleai
+    limit: 20
+    tags: [ai data, data annotation, operations]
+
+  - name: Example Lever Company
+    type: public_ats_api
+    enabled: false
+    company_slug: example
+    limit: 20
+    tags: [remote, contract]
+
+  - name: RemoteOK Public API
+    type: official_api
+    enabled: true
+    provider: remoteok
+    url: https://remoteok.com/api
+    limit: 25
+    tags: [remote, freelance, contract]
+
+  - name: Remotive Public API
+    type: official_api
+    enabled: true
+    provider: remotive
+    url: https://remotive.com/api/remote-jobs
+    query: 'ai data remote'
+    limit: 25
+    tags: [remote, ai data]
+
+  - name: Brave AI Data Search
+    type: search_api
+    enabled: true
+    provider: brave
+    query: 'remote AI data annotation Indonesian English contract'
+    limit: 10
+    tags: [ai data, Indonesian-English, contract]
+
+  - name: Tavily RWS AOP Search
+    type: search_api
+    enabled: true
+    provider: tavily
+    query: 'remote RWS AOP research evaluator freelance'
+    limit: 10
+    tags: [RWS, AOP, research, freelance]

@@ -1,0 +1,18 @@
+# Manual-only search links. ApplyPilot generates URLs but never fetches these boards.
+queries:
+  - name: AI data Indonesian English
+    query: 'AI data annotation Indonesian English remote contract'
+    location: Remote
+    remote: true
+  - name: LLM evaluator freelance
+    query: 'LLM evaluator freelance remote'
+    location: Remote
+    remote: true
+  - name: RWS AOP research
+    query: 'RWS AOP research remote evaluator'
+    location: Remote
+    remote: true
+  - name: Transcription QA
+    query: 'transcription QA Indonesian English remote'
+    location: Remote
+    remote: true

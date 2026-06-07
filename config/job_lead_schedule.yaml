@@ -1,0 +1,16 @@
+# Default safe schedule for GitHub Actions or cron wrappers.
+schedule:
+  default_interval_hours: 24
+  allowed_interval_hours: [6, 24]
+  timezone: UTC
+  public_output_dir: outputs/public
+  commands:
+    - applypilot job-leads collect --config config/job_lead_sources.yaml
+    - applypilot job-leads score --input outputs/public/job_leads_raw.json
+    - applypilot job-leads export --format csv,md
+    - applypilot job-leads links --config config/job_lead_queries.yaml
+safety:
+  no_auto_apply: true
+  human_review_required: true
+  forbidden_sources: [LinkedIn scrape, Indeed scrape, Glassdoor scrape]
+  private_files_forbidden: [.env, resume, cv, profile, cookies, sessions, passwords]
