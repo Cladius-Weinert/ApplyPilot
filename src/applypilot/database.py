@@ -132,6 +132,7 @@ def init_db(db_path: Path | str | None = None) -> sqlite3.Connection:
             verification_confidence TEXT
         )
     """)
+
     conn.commit()
 
     # Run migrations for any columns added after initial schema

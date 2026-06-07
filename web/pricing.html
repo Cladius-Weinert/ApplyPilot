@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ApplyPilot Pricing</title>
+  <style>
+    :root { color-scheme: light dark; --accent: #2563eb; --border: #d1d5db; --bg: #f8fafc; --card: #ffffff; --text: #111827; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #020617; --card: #0f172a; --text: #e5e7eb; --border: #334155; } }
+    body { margin: 0; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 56px; }
+    .hero { text-align: center; margin-bottom: 28px; }
+    h1 { font-size: clamp(2rem, 8vw, 4rem); margin: 0 0 12px; }
+    .subtitle { max-width: 780px; margin: 0 auto; line-height: 1.6; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 22px; box-shadow: 0 8px 24px rgb(15 23 42 / 0.08); display: flex; flex-direction: column; }
+    .plan { font-size: 1.4rem; font-weight: 800; }
+    .price { font-size: 2rem; font-weight: 900; margin: 8px 0; color: var(--accent); }
+    ul { padding-left: 1.2rem; line-height: 1.65; flex: 1; }
+    .cta { display: inline-block; text-align: center; padding: 12px 16px; border-radius: 999px; background: var(--accent); color: white; text-decoration: none; font-weight: 800; }
+    .secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    .disclaimer, .compliance { border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 20px; line-height: 1.55; }
+    table { width: 100%; border-collapse: collapse; margin-top: 26px; background: var(--card); border-radius: 16px; overflow: hidden; }
+    th, td { border: 1px solid var(--border); padding: 12px; text-align: left; vertical-align: top; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <h1>ApplyPilot Pricing</h1>
+      <p class="subtitle">A SaaS-style toolkit for remote AI workers, AI data workers, freelancers, and application tracking users who want to discover better opportunities, organize applications, tailor materials, build proof-of-work portfolios, and apply more consistently.</p>
+    </section>
+
+    <section class="grid" aria-label="Pricing tiers">
+      <article class="card">
+        <div class="plan">Free</div>
+        <div class="price">$0/mo</div>
+        <ul>
+          <li>5 job leads per day</li>
+          <li>Basic application tracker</li>
+          <li>Basic CV template</li>
+          <li>Basic cover letter template</li>
+          <li>Manual job board checklist</li>
+        </ul>
+        <a class="cta secondary" href="#free">Start free</a>
+      </article>
+      <article class="card">
+        <div class="plan">Starter</div>
+        <div class="price">$19/mo placeholder</div>
+        <ul>
+          <li>Saved job search queries</li>
+          <li>Job match scoring</li>
+          <li>CV and cover letter suggestions</li>
+          <li>Daily job discovery workflow</li>
+          <li>CSV export</li>
+          <li>14-day income sprint plan</li>
+        </ul>
+        <a class="cta" href="#starter">Choose Starter</a>
+      </article>
+      <article class="card">
+        <div class="plan">Pro</div>
+        <div class="price">$49/mo placeholder</div>
+        <ul>
+          <li>AI evaluator portfolio builder</li>
+          <li>Premium prompt library</li>
+          <li>Resume tailoring workflow</li>
+          <li>RWS/AOP research workflow templates</li>
+          <li>Freelance gig generator</li>
+          <li>Priority scoring for Mercor, Outlier, TELUS, Mindrift, OneForma, RWS, Prolific</li>
+        </ul>
+        <a class="cta" href="#pro">Choose Pro</a>
+      </article>
+      <article class="card">
+        <div class="plan">Agency</div>
+        <div class="price">$149/mo placeholder</div>
+        <ul>
+          <li>Multiple profiles</li>
+          <li>Client/application pipelines</li>
+          <li>Reusable templates</li>
+          <li>Team notes</li>
+          <li>Export reports</li>
+        </ul>
+        <a class="cta" href="#agency">Choose Agency</a>
+      </article>
+    </section>
+
+    <section class="disclaimer">
+      <strong>No guaranteed jobs or income.</strong> ApplyPilot helps organize and improve a job-search workflow, but it does not guarantee interviews, job offers, hiring outcomes, client work, or income.
+    </section>
+
+    <section class="compliance">
+      <strong>Compliance boundaries:</strong> This MVP is pricing/product documentation only. ApplyPilot does not process payments, does not store payment card data, does not store job-board passwords, and does not bypass LinkedIn/Indeed/Glassdoor protections.
+    </section>
+
+    <table aria-label="Feature comparison">
+      <thead><tr><th>Capability</th><th>Free</th><th>Starter</th><th>Pro</th><th>Agency</th></tr></thead>
+      <tbody>
+        <tr><td>Daily job lead limit</td><td>5</td><td>25</td><td>100</td><td>500</td></tr>
+        <tr><td>Max profiles</td><td>1</td><td>1</td><td>1</td><td>25</td></tr>
+        <tr><td>CSV/export reports</td><td>No</td><td>CSV</td><td>CSV</td><td>CSV + reports</td></tr>
+        <tr><td>Portfolio builder</td><td>No</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>Premium prompts</td><td>No</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>Team notes/templates</td><td>No</td><td>No</td><td>No</td><td>Yes</td></tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

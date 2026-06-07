@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.table import Table
 
 from applypilot import __version__
+from applypilot.job_leads.cli import app as job_leads_app
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,8 +26,11 @@ app = typer.Typer(
 console = Console()
 log = logging.getLogger(__name__)
 
+app.add_typer(job_leads_app, name="job-leads")
+
 # Valid pipeline stages (in execution order)
 VALID_STAGES = ("discover", "enrich", "score", "tailor", "cover", "pdf")
+
 
 
 # ---------------------------------------------------------------------------
@@ -114,9 +118,12 @@ def run(
             )
             raise typer.Exit(code=1)
 
-    # Gate AI stages behind Tier 2
+    resolved_stages = set(VALID_STAGES if "all" in stage_list else stage_list)
+
+    # Gate AI stages behind local dependency tier only. Subscription tiers are
+    # documented for product planning; this MVP does not enforce paid billing.
     llm_stages = {"score", "tailor", "cover"}
-    if any(s in stage_list for s in llm_stages) or "all" in stage_list:
+    if resolved_stages & llm_stages:
         from applypilot.config import check_tier
         check_tier(2, "AI scoring/tailoring")
 
@@ -211,7 +218,7 @@ def apply(
             raise typer.Exit(code=1)
 
     if gen:
-        from applypilot.apply.launcher import gen_prompt, BASE_CDP_PORT
+        from applypilot.apply.launcher import gen_prompt
         target = url or ""
         if not target:
             console.print("[red]--gen requires --url to specify which job.[/red]")
@@ -222,7 +229,7 @@ def apply(
             raise typer.Exit(code=1)
         mcp_path = _profile_path.parent / ".mcp-apply-0.json"
         console.print(f"[green]Wrote prompt to:[/green] {prompt_file}")
-        console.print(f"\n[bold]Run manually:[/bold]")
+        console.print("\n[bold]Run manually:[/bold]")
         console.print(
             f"  claude --model {model} -p "
             f"--mcp-config {mcp_path} "
@@ -254,6 +261,30 @@ def apply(
         continuous=continuous,
         workers=workers,
     )
+
+
+@app.command()
+def pricing() -> None:
+    """Show subscription tiers and the local pricing page path."""
+    from pathlib import Path
+    from applypilot.subscription import PLANS
+
+    table = Table(title="ApplyPilot Subscription Tiers", show_header=True, header_style="bold cyan")
+    table.add_column("Plan")
+    table.add_column("Monthly price")
+    table.add_column("Lead limit", justify="right")
+    table.add_column("Key features")
+    for plan in PLANS.values():
+        table.add_row(
+            plan.plan_name,
+            plan.monthly_price_placeholder,
+            str(plan.feature_limits.daily_job_lead_limit),
+            "\n".join(plan.included_features[:4]),
+        )
+    console.print(table)
+    page = Path("web/pricing.html").resolve()
+    console.print(f"[dim]Pricing page:[/dim] {page}")
+    console.print("[yellow]Disclaimer:[/yellow] ApplyPilot does not guarantee jobs, interviews, hiring, or income.")
 
 
 @app.command()
@@ -338,7 +369,7 @@ def doctor() -> None:
     import shutil
     from applypilot.config import (
         load_env, PROFILE_PATH, RESUME_PATH, RESUME_PDF_PATH,
-        SEARCH_CONFIG_PATH, ENV_PATH, get_chrome_path,
+        SEARCH_CONFIG_PATH, get_chrome_path,
     )
 
     load_env()

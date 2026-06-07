@@ -1,10 +1,10 @@
 <!-- logo here -->
 
-> **⚠️ ApplyPilot** is the original open-source project, created by [Pickle-Pixel](https://github.com/Pickle-Pixel) and first published on GitHub on **February 17, 2026**. We are **not affiliated** with applypilot.app, useapplypilot.com, or any other product using the "ApplyPilot" name. These sites are **not associated with this project** and may misrepresent what they offer. If you're looking for the autonomous, open-source job application agent — you're in the right place.
+> **⚠️ ApplyPilot** is the original open-source project, created by [Pickle-Pixel](https://github.com/Pickle-Pixel) and first published on GitHub on **February 17, 2026**. We are **not affiliated** with applypilot.app, useapplypilot.com, or any other product using the "ApplyPilot" name. These sites are **not associated with this project** and may misrepresent what they offer.
 
 # ApplyPilot
 
-**Applied to 1,000 jobs in 2 days. Fully autonomous. Open source.**
+**A practical job-search workflow assistant for remote jobseekers, AI data workers, freelancers, and application tracking users.**
 
 [![PyPI version](https://img.shields.io/pypi/v/applypilot?color=blue)](https://pypi.org/project/applypilot/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
@@ -27,20 +27,19 @@ See [docs/TERMUX_SETUP.md](docs/TERMUX_SETUP.md) for Android/Termux installation
 
 ## What It Does
 
-ApplyPilot is a 6-stage autonomous job application pipeline. It discovers jobs across 5+ boards, scores them against your resume with AI, tailors your resume per job, writes cover letters, and **submits applications for you**. It navigates forms, uploads documents, answers screening questions, all hands-free.
+ApplyPilot helps remote AI workers discover better job opportunities, organize applications, tailor resumes, build proof-of-work portfolio assets, and apply more consistently. It does **not** guarantee jobs, interviews, hiring, clients, or income.
 
-Three commands. That's it.
+Core workflow commands:
 
 ```bash
 pip install applypilot
 pip install --no-deps python-jobspy && pip install pydantic tls-client requests markdownify regex
 applypilot init          # one-time setup: resume, profile, preferences, API keys
 applypilot doctor        # verify your setup — shows what's installed and what's missing
-applypilot run           # discover > enrich > score > tailor > cover letters
-applypilot run -w 4      # same but parallel (4 threads for discovery/enrichment)
-applypilot apply         # autonomous browser-driven submission
-applypilot apply -w 3    # parallel apply (3 Chrome instances)
-applypilot apply --dry-run  # fill forms without submitting
+applypilot pricing       # view subscription tiers
+applypilot run discover  # discover job leads within the active plan limit
+applypilot run score     # Starter+ job match scoring
+applypilot run tailor    # Pro+ resume tailoring workflow
 ```
 
 > **Why two install commands?** `python-jobspy` pins an exact numpy version in its metadata that conflicts with pip's resolver, but works fine at runtime with any modern numpy. The `--no-deps` flag bypasses the resolver; the second command installs jobspy's actual runtime dependencies. Everything except `python-jobspy` installs normally.
@@ -49,15 +48,15 @@ applypilot apply --dry-run  # fill forms without submitting
 
 ## Two Paths
 
-### Full Pipeline (recommended)
-**Requires:** Python 3.11+, Node.js (for npx), Gemini API key (free), Claude Code CLI, Chrome
+### Free/manual workflow
+**Requires:** Python 3.11+.
 
-Runs all 6 stages, from job discovery to autonomous application submission. This is the full power of ApplyPilot.
+Use discovery, the basic tracker/dashboard, basic CV and cover letter templates, and a manual job-board checklist. Free is limited to 5 job leads per day.
 
-### Discovery + Tailoring Only
-**Requires:** Python 3.11+, Gemini API key (free)
+### Paid AI workflow
+**Requires:** Python 3.11+ and an LLM key for AI-assisted scoring, suggestions, and tailoring.
 
-Runs stages 1-5: discovers jobs, scores them, tailors your resume, generates cover letters. You submit applications manually with the AI-prepared materials.
+Starter unlocks saved-search style workflows, match scoring, cover/CV suggestions, CSV export, and a 14-day income sprint plan. Pro unlocks portfolio-building, premium prompts, resume tailoring, RWS/AOP workflow templates, freelance gig generation, and priority scoring workflows. Agency unlocks multi-profile and team/client pipeline features.
 
 ---
 
@@ -70,7 +69,7 @@ Runs stages 1-5: discovers jobs, scores them, tailors your resume, generates cov
 | **3. Score** | AI rates every job 1-10 based on your resume and preferences. Only high-fit jobs proceed |
 | **4. Tailor** | AI rewrites your resume per job: reorganizes, emphasizes relevant experience, adds keywords. Never fabricates |
 | **5. Cover Letter** | AI generates a targeted cover letter per job |
-| **6. Auto-Apply** | Claude Code navigates application forms, fills fields, uploads documents, answers questions, and submits |
+| **6. Review/track** | Review generated materials, submit manually where appropriate, and track outcomes |
 
 Each stage is independent. Run them all or pick what you need.
 
@@ -83,7 +82,7 @@ Each stage is independent. Run them all or pick what you need.
 | Job discovery | 5 boards + Workday + direct sites | LinkedIn only | One board at a time |
 | AI scoring | 1-10 fit score per job | Basic filtering | Your gut feeling |
 | Resume tailoring | Per-job AI rewrite | Template-based | Hours per application |
-| Auto-apply | Full form navigation + submission | LinkedIn Easy Apply only | Click, type, repeat |
+| Application tracking | Local tracker + dashboard | LinkedIn-focused | Spreadsheets/manual notes |
 | Supported sites | Indeed, LinkedIn, Glassdoor, ZipRecruiter, Google Jobs, 46 Workday portals, 28 direct sites | LinkedIn | Whatever you open |
 | License | AGPL-3.0 | MIT | N/A |
 
@@ -94,18 +93,15 @@ Each stage is independent. Run them all or pick what you need.
 | Component | Required For | Details |
 |-----------|-------------|---------|
 | Python 3.11+ | Everything | Core runtime |
-| Node.js 18+ | Auto-apply | Needed for `npx` to run Playwright MCP server |
-| Gemini API key | Scoring, tailoring, cover letters | Free tier (15 RPM / 1M tokens/day) is enough |
-| Chrome/Chromium | Auto-apply | Auto-detected on most systems |
-| Claude Code CLI | Auto-apply | Install from [claude.ai/code](https://claude.ai/code) |
+| Gemini/OpenAI/local LLM key | Scoring, tailoring, cover letters | Required for AI stages only |
 
 **Gemini API key is free.** Get one at [aistudio.google.com](https://aistudio.google.com). OpenAI and local models (Ollama/llama.cpp) are also supported.
 
-### Optional
+### Optional job lead search APIs
 
 | Component | What It Does |
 |-----------|-------------|
-| CapSolver API key | Solves CAPTCHAs during auto-apply (hCaptcha, reCAPTCHA, Turnstile, FunCaptcha). Without it, CAPTCHA-blocked applications just fail gracefully |
+| Brave/Bing/SerpAPI/Tavily key | Enables optional search API collection for safe public job lead discovery. Leave blank to disable. |
 
 > **Note:** python-jobspy is installed separately with `--no-deps` because it pins an exact numpy version in its metadata that conflicts with pip's resolver. It works fine with modern numpy at runtime.
 
@@ -122,7 +118,7 @@ Your personal data in one structured file: contact info, work authorization, com
 Job search queries, target titles, locations, boards. Run multiple searches with different parameters.
 
 ### `.env`
-API keys and runtime config: `GEMINI_API_KEY`, `LLM_MODEL`, `CAPSOLVER_API_KEY` (optional).
+API keys and runtime config: `GEMINI_API_KEY`, `LLM_MODEL`, and optional safe job lead search API keys. Subscription/pricing data is product documentation only in this MVP.
 
 ### Package configs (shipped with ApplyPilot)
 - `config/employers.yaml` - Workday employer registry (48 preconfigured)
@@ -148,17 +144,14 @@ Generates a custom resume per job: reorders experience, emphasizes relevant skil
 ### Cover Letter
 Writes a targeted cover letter per job referencing the specific company, role, and how your experience maps to their requirements.
 
-### Auto-Apply
-Claude Code launches a Chrome instance, navigates to each application page, detects the form type, fills personal information and work history, uploads the tailored resume and cover letter, answers screening questions with AI, and submits. A live dashboard shows progress in real-time.
-
-The Playwright MCP server is configured automatically at runtime per worker. No manual MCP setup needed.
+### Review/track
+Use the local tracker and dashboard to review generated materials, record manual submissions, and track outcomes. Respect each job board's terms and protections; do not store job-board passwords or bypass LinkedIn, Indeed, Glassdoor, or similar protections.
 
 ```bash
-# Utility modes (no Chrome/Claude needed)
+# Utility tracking modes
 applypilot apply --mark-applied URL    # manually mark a job as applied
 applypilot apply --mark-failed URL     # manually mark a job as failed
-applypilot apply --reset-failed        # reset all failed jobs for retry
-applypilot apply --gen --url URL       # generate prompt file for manual debugging
+applypilot apply --reset-failed        # reset failed jobs for manual retry
 ```
 
 ---
@@ -175,15 +168,113 @@ applypilot run --min-score 8            # Override score threshold
 applypilot run --dry-run                # Preview without executing
 applypilot run --validation lenient     # Relax validation (recommended for Gemini free tier)
 applypilot run --validation strict      # Strictest validation (retries on any banned word)
-applypilot apply                        # Launch auto-apply
-applypilot apply --workers 3            # Parallel browser workers
-applypilot apply --dry-run              # Fill forms without submitting
-applypilot apply --continuous           # Run forever, polling for new jobs
-applypilot apply --headless             # Headless browser mode
-applypilot apply --url URL              # Apply to a specific job
+applypilot pricing                      # Show subscription tiers
+applypilot apply --mark-applied URL     # Manually mark a job as applied
+applypilot apply --mark-failed URL      # Manually mark a job as failed
 applypilot status                       # Pipeline statistics
 applypilot dashboard                    # Open HTML results dashboard
 ```
+
+---
+
+## Monetization Model
+
+ApplyPilot includes subscription tiers for a hosted SaaS-style product. Pricing values are placeholders until validated with customers.
+
+| Tier | Monthly placeholder | Included |
+|------|---------------------|----------|
+| Free | $0/mo | 5 job leads/day, basic application tracker, basic CV template, basic cover letter template, manual job-board checklist |
+| Starter | $19/mo placeholder | Saved job search queries, job match scoring, CV/cover suggestions, daily discovery workflow, CSV export, 14-day income sprint plan |
+| Pro | $49/mo placeholder | AI evaluator portfolio builder, premium prompt library, resume tailoring, RWS/AOP templates, freelance gig generator, priority scoring for Mercor, Outlier, TELUS, Mindrift, OneForma, RWS, and Prolific |
+| Agency | $149/mo placeholder | Multiple profiles, client/application pipelines, reusable templates, team notes, export reports |
+
+See [`web/pricing.html`](web/pricing.html), [`docs/SUBSCRIPTION_MODEL.md`](docs/SUBSCRIPTION_MODEL.md), and [`docs/PRICING_STRATEGY.md`](docs/PRICING_STRATEGY.md).
+
+### Subscription/pricing MVP boundary
+
+The Free/Starter/Pro/Agency tiers are product documentation and pricing placeholders only. This MVP does not include Stripe checkout, payment webhooks, card storage, or hosted paid-feature authorization. Add payment later only with server-side billing code and verified provider webhooks.
+
+### Privacy and no-guarantee disclaimer
+
+ApplyPilot stores local job-search data in `~/.applypilot` by default. Hosted deployments should publish a privacy policy before collecting user data. ApplyPilot does not guarantee jobs, interviews, hiring, clients, or income.
+
+---
+
+## Safe Scheduled Job Lead Discovery
+
+ApplyPilot includes a safe job lead agent for scheduled discovery every 24 hours by default. It is designed for public-safe lead collection and human review only.
+
+### Automated sources
+
+The scheduled agent may collect from:
+
+- Greenhouse public job board endpoints.
+- Lever public postings endpoints.
+- RemoteOK and Remotive public APIs when available.
+- Optional search APIs when keys are configured: Brave Search API, Bing Web Search API, SerpAPI, or Tavily.
+
+The search API collector is disabled automatically when no matching API key exists.
+
+### Manual-only sources
+
+ApplyPilot does **not** scrape LinkedIn, Indeed, Glassdoor, Google Jobs, or ZipRecruiter. It only generates manual search links for these sites so a human can open and review them:
+
+```bash
+applypilot job-leads links --config config/job_lead_queries.yaml
+```
+
+### Job lead commands
+
+```bash
+applypilot job-leads collect --config config/job_lead_sources.yaml
+applypilot job-leads score --input outputs/public/job_leads_raw.json
+applypilot job-leads export --format csv,md
+applypilot job-leads links --config config/job_lead_queries.yaml
+```
+
+Public-safe outputs are written to `outputs/public/`:
+
+- `job_leads.csv`
+- `job_leads.md`
+- `manual_search_links.md`
+- `job_lead_summary.md`
+
+### Android / Termux usage
+
+```bash
+pkg update && pkg install python git
+cd ApplyPilot
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+applypilot job-leads collect --config config/job_lead_sources.yaml
+applypilot job-leads score --input outputs/public/job_leads_raw.json
+applypilot job-leads export --format csv,md
+applypilot job-leads links --config config/job_lead_queries.yaml
+```
+
+If editable install is blocked, use `PYTHONPATH=src python -m applypilot.cli job-leads ...`.
+
+### Codex Cloud usage
+
+In Codex Cloud or any non-interactive container, run the same commands with `PYTHONPATH=src` if the package is not installed. Keep generated files under `outputs/public/` only and do not upload resumes, profiles, `.env` files, cookies, sessions, or passwords.
+
+### GitHub Actions schedule
+
+The workflow `.github/workflows/job-leads.yml` supports manual `workflow_dispatch` and a default 24-hour cron schedule. To enable it, push the workflow to GitHub and confirm Actions are enabled for the repository. To run every 6 hours, edit the workflow cron from `0 3 * * *` to `0 */6 * * *`.
+
+The workflow uploads only public-safe files from `outputs/public/` and must not upload `.env`, resumes/CVs, profiles, cookies, sessions, passwords, or browser data.
+
+### Privacy, anti-scam, and no-auto-apply rules
+
+- No auto-apply is performed.
+- Human review is required before every application.
+- The agent does not store passwords, cookies, sessions, browser profiles, or personal account data.
+- The agent does not bypass CAPTCHA, bot protection, login walls, paywalls, or robots restrictions.
+- Treat deposits, paid applications, wire transfers, suspicious companies, unrealistic salary claims, and unclear apply paths as scam risks.
+- ApplyPilot does not guarantee jobs, interviews, hiring, clients, or income.
+
+See [`docs/JOB_LEAD_AGENT.md`](docs/JOB_LEAD_AGENT.md) and [`docs/SAFE_JOB_DISCOVERY_POLICY.md`](docs/SAFE_JOB_DISCOVERY_POLICY.md).
 
 ---
 
