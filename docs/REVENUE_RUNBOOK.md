@@ -29,11 +29,18 @@ Deliverables:
 
 ## Pricing ladder
 
+Use USD for international positioning. Keep the offer affordable at first, then increase prices after there are samples, testimonials, and repeatable delivery.
+
 | Package | Price | Deliverables |
 |---|---:|---|
-| Basic | Rp100.000-Rp150.000 | 1 role, CV summary, cover letter, 3 screening answers |
-| Pro | Rp250.000-Rp350.000 | 3 roles, keyword map, CV bullets, cover letters, screening answers |
-| Custom | Rp500.000+ | multi-platform pack, profile copy, follow-up messages, delivery checklist |
+| Starter | $9-$15 | 1 target role, CV summary rewrite, 1 cover letter, 3 screening-answer drafts |
+| Standard | $25-$39 | 3 target roles, ATS keyword map, tailored CV bullets, 3 cover letters, screening-answer drafts |
+| Pro | $59-$99 | multi-platform application pack, profile copy, follow-up messages, final checklist, priority review |
+| Custom | $120+ | custom job-search/application workflow, portfolio positioning, recurring support, client-specific delivery |
+
+## Recommended first public price
+
+Start with **$15** for a simple Starter pack or **$29** for a Standard pack. Do not start too high before there are proof samples. Do not start too low because international buyers may read very low pricing as low quality.
 
 ## Safe operating model
 
@@ -124,22 +131,28 @@ Before delivering a paid pack:
 - run final realism check
 - deliver in Google Docs or PDF
 
-## Outreach copy
+## International outreach copy
 
 ```text
-Saya membantu pencari kerja remote membuat paket lamaran yang lebih rapi dan sesuai target role.
+I help remote job seekers create stronger, more targeted application packs for AI data annotation, transcription, QA review, language evaluation, and remote freelance roles.
 
-Cocok untuk AI Data Annotation, Transcription, QA Review, Language Evaluation, dan remote freelance roles.
-
-Yang Anda dapat:
-- CV summary yang lebih kuat
-- cover letter sesuai lowongan
-- keyword ATS
-- jawaban screening awal
+You get:
+- stronger CV/resume summary
+- role-targeted cover letter
+- ATS keyword map
+- screening-answer drafts
 - follow-up message
+- final application checklist
 
-Harga mulai Rp100.000.
+Starter package from $15.
 ```
+
+## Fiverr / freelance marketplace gig title ideas
+
+- I will create a targeted remote job application pack
+- I will optimize your CV for AI data annotation and remote roles
+- I will write your cover letter and screening answers for remote jobs
+- I will prepare an ATS-friendly application pack for freelance platforms
 
 ## Next engineering priorities
 
