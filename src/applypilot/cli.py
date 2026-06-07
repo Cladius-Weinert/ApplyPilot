@@ -211,7 +211,7 @@ def apply(
             raise typer.Exit(code=1)
 
     if gen:
-        from applypilot.apply.launcher import gen_prompt, BASE_CDP_PORT
+        from applypilot.apply.launcher import gen_prompt
         target = url or ""
         if not target:
             console.print("[red]--gen requires --url to specify which job.[/red]")
@@ -222,7 +222,7 @@ def apply(
             raise typer.Exit(code=1)
         mcp_path = _profile_path.parent / ".mcp-apply-0.json"
         console.print(f"[green]Wrote prompt to:[/green] {prompt_file}")
-        console.print(f"\n[bold]Run manually:[/bold]")
+        console.print("\n[bold]Run manually:[/bold]")
         console.print(
             f"  claude --model {model} -p "
             f"--mcp-config {mcp_path} "
@@ -338,7 +338,7 @@ def doctor() -> None:
     import shutil
     from applypilot.config import (
         load_env, PROFILE_PATH, RESUME_PATH, RESUME_PDF_PATH,
-        SEARCH_CONFIG_PATH, ENV_PATH, get_chrome_path,
+        SEARCH_CONFIG_PATH, get_chrome_path, is_termux,
     )
 
     load_env()
@@ -380,20 +380,31 @@ def doctor() -> None:
 
     # --- Tier 2 checks ---
     import os
-    has_gemini = bool(os.environ.get("GEMINI_API_KEY"))
-    has_openai = bool(os.environ.get("OPENAI_API_KEY"))
-    has_local = bool(os.environ.get("LLM_URL"))
-    if has_gemini:
-        model = os.environ.get("LLM_MODEL", "gemini-2.0-flash")
-        results.append(("LLM API key", ok_mark, f"Gemini ({model})"))
-    elif has_openai:
-        model = os.environ.get("LLM_MODEL", "gpt-4o-mini")
-        results.append(("LLM API key", ok_mark, f"OpenAI ({model})"))
-    elif has_local:
-        results.append(("LLM API key", ok_mark, f"Local: {os.environ.get('LLM_URL')}"))
+    provider_checks = [
+        ("gemini", "GEMINI_API_KEY", "gemini-2.0-flash"),
+        ("openai", "OPENAI_API_KEY", "gpt-4o-mini"),
+        ("openrouter", "OPENROUTER_API_KEY", "google/gemini-2.0-flash-001"),
+        ("deepseek", "DEEPSEEK_API_KEY", "deepseek-chat"),
+        ("claude", "ANTHROPIC_API_KEY", "claude-3-5-haiku-latest"),
+        ("claude", "CLAUDE_API_KEY", "claude-3-5-haiku-latest"),
+    ]
+    configured_providers = [
+        (name, os.environ.get("LLM_MODEL", default))
+        for name, env_name, default in provider_checks
+        if os.environ.get(env_name)
+    ]
+    if os.environ.get("LLM_URL"):
+        configured_providers.append(("local", os.environ.get("LLM_MODEL", os.environ.get("LLM_URL", "local-model"))))
+
+    if configured_providers:
+        requested = os.environ.get("LLM_PROVIDER")
+        label = ", ".join(f"{name} ({model})" for name, model in configured_providers)
+        if requested:
+            label = f"{label}; requested={requested}"
+        results.append(("LLM provider", ok_mark, label))
     else:
-        results.append(("LLM API key", fail_mark,
-                        "Set GEMINI_API_KEY in ~/.applypilot/.env (run 'applypilot init')"))
+        results.append(("LLM provider", fail_mark,
+                        "Set GEMINI_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY, DEEPSEEK_API_KEY, ANTHROPIC_API_KEY, or LLM_URL"))
 
     # --- Tier 3 checks ---
     # Claude Code CLI
@@ -408,9 +419,14 @@ def doctor() -> None:
     try:
         chrome_path = get_chrome_path()
         results.append(("Chrome/Chromium", ok_mark, chrome_path))
-    except FileNotFoundError:
-        results.append(("Chrome/Chromium", fail_mark,
-                        "Install Chrome or set CHROME_PATH env var (needed for auto-apply)"))
+    except FileNotFoundError as exc:
+        chrome_status = warn_mark if is_termux() else fail_mark
+        results.append(("Chrome/Chromium", chrome_status, str(exc)))
+
+    # Termux environment
+    if is_termux():
+        results.append(("Termux mode", warn_mark,
+                        "Discovery and AI tailoring are supported; auto-apply may need proot + Chromium"))
 
     # Node.js / npx (for Playwright MCP)
     npx_bin = shutil.which("npx")

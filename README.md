@@ -47,6 +47,33 @@ applypilot apply --dry-run  # fill forms without submitting
 
 ---
 
+
+## Quick Start
+
+### From PyPI
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install applypilot
+python -m pip install --no-deps python-jobspy
+python -m pip install pydantic tls-client requests markdownify regex
+applypilot init
+applypilot doctor
+```
+
+### From a cloned repo
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+make doctor
+make test
+```
+
+Available developer shortcuts: `make install`, `make install-dev`, `make install-jobspy`, `make doctor`, `make test`, `make lint`, and `make run`.
+
+---
+
 ## Two Paths
 
 ### Full Pipeline (recommended)
@@ -99,7 +126,7 @@ Each stage is independent. Run them all or pick what you need.
 | Chrome/Chromium | Auto-apply | Auto-detected on most systems |
 | Claude Code CLI | Auto-apply | Install from [claude.ai/code](https://claude.ai/code) |
 
-**Gemini API key is free.** Get one at [aistudio.google.com](https://aistudio.google.com). OpenAI and local models (Ollama/llama.cpp) are also supported.
+**Gemini API key is free.** Get one at [aistudio.google.com](https://aistudio.google.com). OpenAI/GPT, OpenRouter, DeepSeek, Claude, and local models (Ollama/llama.cpp) are also supported.
 
 ### Optional
 
@@ -108,6 +135,37 @@ Each stage is independent. Run them all or pick what you need.
 | CapSolver API key | Solves CAPTCHAs during auto-apply (hCaptcha, reCAPTCHA, Turnstile, FunCaptcha). Without it, CAPTCHA-blocked applications just fail gracefully |
 
 > **Note:** python-jobspy is installed separately with `--no-deps` because it pins an exact numpy version in its metadata that conflicts with pip's resolver. It works fine with modern numpy at runtime.
+
+---
+
+
+## Termux Android Setup
+
+ApplyPilot is usable on Termux for the discovery and AI-material-generation workflow. Full auto-apply is best treated as experimental on Android because it needs Claude Code, Node.js/`npx`, and a controllable Chrome/Chromium binary. See the detailed guide in [`docs/TERMUX.md`](docs/TERMUX.md).
+
+```bash
+pkg update && pkg upgrade
+pkg install python git clang rust make libxml2 libxslt openssl
+python -m pip install --upgrade pip wheel setuptools
+
+# From this repo
+python -m pip install -e ".[dev]"
+make install-jobspy
+mkdir -p ~/.applypilot
+cp .env.example ~/.applypilot/.env
+applypilot init
+applypilot doctor
+```
+
+Recommended Termux workflow:
+
+```bash
+applypilot run discover enrich
+applypilot run score tailor cover --validation lenient
+applypilot status
+```
+
+If `applypilot doctor` warns that Chrome/Chromium is missing, use Termux for discovery/tailoring and submit applications manually, or configure a proot Linux environment and set `CHROME_PATH`.
 
 ---
 
@@ -122,7 +180,7 @@ Your personal data in one structured file: contact info, work authorization, com
 Job search queries, target titles, locations, boards. Run multiple searches with different parameters.
 
 ### `.env`
-API keys and runtime config: `GEMINI_API_KEY`, `LLM_MODEL`, `CAPSOLVER_API_KEY` (optional).
+API keys and runtime config: `LLM_PROVIDER`, `GEMINI_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, `DEEPSEEK_API_KEY`, `ANTHROPIC_API_KEY`, `LLM_URL`, `LLM_MODEL`, `APPLYPILOT_DIR`, `CHROME_PATH`, and `CAPSOLVER_API_KEY` (optional).
 
 ### Package configs (shipped with ApplyPilot)
 - `config/employers.yaml` - Workday employer registry (48 preconfigured)
@@ -184,6 +242,22 @@ applypilot apply --url URL              # Apply to a specific job
 applypilot status                       # Pipeline statistics
 applypilot dashboard                    # Open HTML results dashboard
 ```
+
+---
+
+
+## Business and Technical Audits
+
+This repository includes business-grade audit documents for product direction, competitors, security, performance, Termux optimization, AI architecture, monetization, and portfolio value:
+
+- [`PRODUCT_AUDIT.md`](PRODUCT_AUDIT.md)
+- [`COMPETITOR_ANALYSIS.md`](COMPETITOR_ANALYSIS.md)
+- [`SECURITY_REPORT.md`](SECURITY_REPORT.md)
+- [`PERFORMANCE_REPORT.md`](PERFORMANCE_REPORT.md)
+- [`TERMUX_OPTIMIZATION.md`](TERMUX_OPTIMIZATION.md)
+- [`AI_ARCHITECTURE.md`](AI_ARCHITECTURE.md)
+- [`MONETIZATION_PLAN.md`](MONETIZATION_PLAN.md)
+- [`CAREER_IMPACT_REPORT.md`](CAREER_IMPACT_REPORT.md)
 
 ---
 
