@@ -39,3 +39,4 @@ Thumbs.db
 
 # Claude Code
 .claude/
+bootstrap_applypilot_docs.sh
