@@ -1,0 +1,121 @@
+# Relevant job searches for Cladius Weinert
+# Copy this content into your local ApplyPilot searches.yaml if the CLI does not read this file directly.
+# Keep this file public-safe. Do not add passwords, API keys, phone numbers, or full address.
+
+searches:
+  - name: ai-data-annotator-indonesian-remote
+    query: "AI Data Annotator Indonesian remote"
+    location: "Remote"
+    results_wanted: 40
+    site_name:
+      - indeed
+      - linkedin
+      - glassdoor
+      - zip_recruiter
+      - google
+
+  - name: indonesian-ai-trainer-remote
+    query: "Indonesian AI Trainer remote"
+    location: "Remote"
+    results_wanted: 40
+    site_name:
+      - indeed
+      - linkedin
+      - glassdoor
+      - zip_recruiter
+      - google
+
+  - name: bilingual-indonesian-english-evaluator
+    query: "Bilingual Indonesian English evaluator remote"
+    location: "Remote"
+    results_wanted: 35
+    site_name:
+      - indeed
+      - linkedin
+      - glassdoor
+      - zip_recruiter
+      - google
+
+  - name: llm-response-evaluator-indonesian
+    query: "LLM response evaluator Indonesian remote"
+    location: "Remote"
+    results_wanted: 35
+    site_name:
+      - indeed
+      - linkedin
+      - glassdoor
+      - zip_recruiter
+      - google
+
+  - name: transcription-qa-indonesian
+    query: "Indonesian transcription QA remote"
+    location: "Remote"
+    results_wanted: 30
+    site_name:
+      - indeed
+      - linkedin
+      - glassdoor
+      - zip_recruiter
+      - google
+
+  - name: remote-content-evaluator
+    query: "remote content evaluator AI"
+    location: "Remote"
+    results_wanted: 30
+    site_name:
+      - indeed
+      - linkedin
+      - glassdoor
+      - zip_recruiter
+      - google
+
+  - name: balinese-linguist-remote
+    query: "Balinese linguist remote"
+    location: "Remote"
+    results_wanted: 25
+    site_name:
+      - indeed
+      - linkedin
+      - google
+
+  - name: malay-indonesian-language-evaluator
+    query: "Malay Indonesian language evaluator remote"
+    location: "Remote"
+    results_wanted: 25
+    site_name:
+      - indeed
+      - linkedin
+      - glassdoor
+      - google
+
+filters:
+  required:
+    - remote
+  prefer:
+    - freelance
+    - contract
+    - part-time
+    - AI training
+    - data annotation
+    - language evaluation
+    - transcription QA
+  reject:
+    - onsite only
+    - relocation required
+    - senior software engineer only
+    - requires native English only
+    - unpaid internship
+    - commission only
+
+scoring:
+  minimum_score: 8
+  prioritize:
+    - Indonesian language
+    - English language
+    - Malay language
+    - Balinese language
+    - AI data annotation
+    - LLM evaluation
+    - transcription quality assurance
+    - content evaluation
+    - remote freelance work
