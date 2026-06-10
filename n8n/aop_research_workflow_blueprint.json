@@ -1,0 +1,17 @@
+{
+  "name": "AOP Research Workflow Blueprint",
+  "trigger": "manual_or_notion_or_webhook",
+  "steps": [
+    "Receive study intake",
+    "Validate fields",
+    "Create evidence log",
+    "Generate draft",
+    "Human approval",
+    "Mark ready for manual submission"
+  ],
+  "safety": {
+    "no_auto_submit": true,
+    "human_in_the_loop": true,
+    "no_secret_logging": true
+  }
+}

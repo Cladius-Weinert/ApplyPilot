@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "required": ["study_id", "title", "status"],
+  "properties": {
+    "study_id": { "type": "string" },
+    "title": { "type": "string" },
+    "status": { "type": "string" },
+    "source": { "type": "string" },
+    "evidence": { "type": "string" },
+    "human_approval_required": { "type": "boolean" }
+  }
+}
